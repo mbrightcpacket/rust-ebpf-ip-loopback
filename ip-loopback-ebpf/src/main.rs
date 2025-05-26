@@ -53,7 +53,6 @@ pub fn ip_loopback(ctx: XdpContext) -> u32 {
 }
 
 fn try_ip_loopback(ctx: XdpContext) -> Result<u32, u32> {
-
     let eth = ptr_at_mut::<EthHdr>(&ctx, 0).ok_or(xdp_action::XDP_PASS)?;
 
     if unsafe { (*eth).ether_type } != EtherType::Ipv4 {
@@ -66,10 +65,10 @@ fn try_ip_loopback(ctx: XdpContext) -> Result<u32, u32> {
         return Ok(xdp_action::XDP_PASS);
     }
 
-    // We process only those packets with UDP destination port 15000.
+    // We process only those packets with UDP destination port 6081.
     // Let other unintended packets pass through.
     let udp = ptr_at::<UdpHdr>(&ctx, ETH_HDR_LEN + IP_HDR_LEN).ok_or(xdp_action::XDP_PASS)?;
-    if unsafe { (*udp).dest } != 15000u16.to_be() {
+    if unsafe { (*udp).dest } != 6081u16.to_be() {
         return Ok(xdp_action::XDP_PASS);
     }
 
@@ -101,20 +100,38 @@ fn try_ip_loopback(ctx: XdpContext) -> Result<u32, u32> {
     // - Swap the source and destination MAC addresses as well,
     //   so that the packet goes to the intended host.
     unsafe {
-        info!(&ctx, "Old IPv4 addr 0x{:x} -> 0x{:x}", (*ip).src_addr.to_be(), (*ip).dst_addr.to_be());
+        info!(
+            &ctx,
+            "Old IPv4 addr 0x{:x} -> 0x{:x}",
+            (*ip).src_addr.to_be(),
+            (*ip).dst_addr.to_be()
+        );
         let temp_ip = (*ip).src_addr;
         (*ip).src_addr = (*ip).dst_addr;
         (*ip).dst_addr = temp_ip;
-        info!(&ctx, "New IPv4 addr 0x{:x} -> 0x{:x}", (*ip).src_addr.to_be(), (*ip).dst_addr.to_be());
+        info!(
+            &ctx,
+            "New IPv4 addr 0x{:x} -> 0x{:x}",
+            (*ip).src_addr.to_be(),
+            (*ip).dst_addr.to_be()
+        );
 
         // Swap src and dst MAC addresses.
         info!(
             &ctx,
             "Old eth addr {:x}:{:x}:{:x}:{:x}:{:x}:{:x} -> {:x}:{:x}:{:x}:{:x}:{:x}:{:x}",
-            (*eth).src_addr[0], (*eth).src_addr[1], (*eth).src_addr[2],
-            (*eth).src_addr[3], (*eth).src_addr[4], (*eth).src_addr[5],
-            (*eth).dst_addr[0], (*eth).dst_addr[1], (*eth).dst_addr[2],
-            (*eth).dst_addr[3], (*eth).dst_addr[4], (*eth).dst_addr[5],
+            (*eth).src_addr[0],
+            (*eth).src_addr[1],
+            (*eth).src_addr[2],
+            (*eth).src_addr[3],
+            (*eth).src_addr[4],
+            (*eth).src_addr[5],
+            (*eth).dst_addr[0],
+            (*eth).dst_addr[1],
+            (*eth).dst_addr[2],
+            (*eth).dst_addr[3],
+            (*eth).dst_addr[4],
+            (*eth).dst_addr[5],
         );
         let temp_addr = (*eth).src_addr;
         (*eth).src_addr = (*eth).dst_addr;
@@ -122,10 +139,18 @@ fn try_ip_loopback(ctx: XdpContext) -> Result<u32, u32> {
         info!(
             &ctx,
             "New eth addr {:x}:{:x}:{:x}:{:x}:{:x}:{:x} -> {:x}:{:x}:{:x}:{:x}:{:x}:{:x}",
-            (*eth).src_addr[0], (*eth).src_addr[1], (*eth).src_addr[2],
-            (*eth).src_addr[3], (*eth).src_addr[4], (*eth).src_addr[5],
-            (*eth).dst_addr[0], (*eth).dst_addr[1], (*eth).dst_addr[2],
-            (*eth).dst_addr[3], (*eth).dst_addr[4], (*eth).dst_addr[5],
+            (*eth).src_addr[0],
+            (*eth).src_addr[1],
+            (*eth).src_addr[2],
+            (*eth).src_addr[3],
+            (*eth).src_addr[4],
+            (*eth).src_addr[5],
+            (*eth).dst_addr[0],
+            (*eth).dst_addr[1],
+            (*eth).dst_addr[2],
+            (*eth).dst_addr[3],
+            (*eth).dst_addr[4],
+            (*eth).dst_addr[5],
         );
     }
 

@@ -3,7 +3,7 @@ use aya::programs::{Xdp, XdpFlags};
 use aya::{include_bytes_aligned, Ebpf};
 use aya_log::EbpfLogger;
 use clap::Parser;
-use log::{info, warn, debug};
+use log::{debug, info, warn};
 use tokio::signal;
 
 #[derive(Debug, Parser)]
@@ -47,7 +47,8 @@ async fn main() -> Result<(), anyhow::Error> {
     }
     let program: &mut Xdp = bpf.program_mut("ip_loopback").unwrap().try_into()?;
     program.load()?;
-    program.attach(&opt.iface, XdpFlags::default())
+    // program.attach(&opt.iface, XdpFlags::default())
+    program.attach(&opt.iface, XdpFlags::SKB_MODE)
         .context("failed to attach the XDP program with default flags - try changing XdpFlags::default() to XdpFlags::SKB_MODE")?;
 
     info!("Waiting for Ctrl-C...");
