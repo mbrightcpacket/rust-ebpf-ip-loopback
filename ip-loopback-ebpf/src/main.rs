@@ -87,13 +87,13 @@ fn try_ip_loopback(ctx: XdpContext) -> Result<u32, u32> {
         );
     }
 
-    let computed_checksum = ipv4_csum::ipv4_checksum_calc(&mut unsafe { *ip }).to_be();
-    info!(
-        &ctx,
-        "IPv4 original checksum: 0x{:x}/0x{:x}",
-        unsafe { (*ip).check },
-        computed_checksum
-    );
+    // let computed_checksum = ipv4_csum::ipv4_checksum_calc(&mut unsafe { *ip }).to_be();
+    // info!(
+    //     &ctx,
+    //     "IPv4 original checksum: 0x{:x}/0x{:x}",
+    //     unsafe { (*ip).check },
+    //     computed_checksum
+    // );
 
     // Modify the packet:
     // - Swap the source and destination IPv4 addresses.
@@ -102,69 +102,81 @@ fn try_ip_loopback(ctx: XdpContext) -> Result<u32, u32> {
     unsafe {
         info!(
             &ctx,
-            "Old IPv4 addr 0x{:x} -> 0x{:x}",
-            (*ip).src_addr.to_be(),
-            (*ip).dst_addr.to_be()
+            "Old IPv4 addr {}.{}.{}.{} -> {}.{}.{}.{}",
+            (*ip).src_addr & 0xFF,
+            ((*ip).src_addr >> 8) & 0xFF,
+            ((*ip).src_addr >> 16) & 0xFF,
+            ((*ip).src_addr >> 24) & 0xFF,
+            (*ip).dst_addr & 0xFF,
+            ((*ip).dst_addr >> 8) & 0xFF,
+            ((*ip).dst_addr >> 16) & 0xFF,
+            ((*ip).dst_addr >> 24) & 0xFF
         );
         let temp_ip = (*ip).src_addr;
         (*ip).src_addr = (*ip).dst_addr;
         (*ip).dst_addr = temp_ip;
         info!(
             &ctx,
-            "New IPv4 addr 0x{:x} -> 0x{:x}",
-            (*ip).src_addr.to_be(),
-            (*ip).dst_addr.to_be()
+            "New IPv4 addr {}.{}.{}.{} -> {}.{}.{}.{}",
+            (*ip).src_addr & 0xFF,
+            ((*ip).src_addr >> 8) & 0xFF,
+            ((*ip).src_addr >> 16) & 0xFF,
+            ((*ip).src_addr >> 24) & 0xFF,
+            (*ip).dst_addr & 0xFF,
+            ((*ip).dst_addr >> 8) & 0xFF,
+            ((*ip).dst_addr >> 16) & 0xFF,
+            ((*ip).dst_addr >> 24) & 0xFF
         );
 
-        // Swap src and dst MAC addresses.
-        info!(
-            &ctx,
-            "Old eth addr {:x}:{:x}:{:x}:{:x}:{:x}:{:x} -> {:x}:{:x}:{:x}:{:x}:{:x}:{:x}",
-            (*eth).src_addr[0],
-            (*eth).src_addr[1],
-            (*eth).src_addr[2],
-            (*eth).src_addr[3],
-            (*eth).src_addr[4],
-            (*eth).src_addr[5],
-            (*eth).dst_addr[0],
-            (*eth).dst_addr[1],
-            (*eth).dst_addr[2],
-            (*eth).dst_addr[3],
-            (*eth).dst_addr[4],
-            (*eth).dst_addr[5],
-        );
+        // // Swap src and dst MAC addresses.
+        // info!(
+        //     &ctx,
+        //     "Old eth addr {:x}:{:x}:{:x}:{:x}:{:x}:{:x} -> {:x}:{:x}:{:x}:{:x}:{:x}:{:x}",
+        //     (*eth).src_addr[0],
+        //     (*eth).src_addr[1],
+        //     (*eth).src_addr[2],
+        //     (*eth).src_addr[3],
+        //     (*eth).src_addr[4],
+        //     (*eth).src_addr[5],
+        //     (*eth).dst_addr[0],
+        //     (*eth).dst_addr[1],
+        //     (*eth).dst_addr[2],
+        //     (*eth).dst_addr[3],
+        //     (*eth).dst_addr[4],
+        //     (*eth).dst_addr[5],
+        // );
         let temp_addr = (*eth).src_addr;
         (*eth).src_addr = (*eth).dst_addr;
         (*eth).dst_addr = temp_addr;
-        info!(
-            &ctx,
-            "New eth addr {:x}:{:x}:{:x}:{:x}:{:x}:{:x} -> {:x}:{:x}:{:x}:{:x}:{:x}:{:x}",
-            (*eth).src_addr[0],
-            (*eth).src_addr[1],
-            (*eth).src_addr[2],
-            (*eth).src_addr[3],
-            (*eth).src_addr[4],
-            (*eth).src_addr[5],
-            (*eth).dst_addr[0],
-            (*eth).dst_addr[1],
-            (*eth).dst_addr[2],
-            (*eth).dst_addr[3],
-            (*eth).dst_addr[4],
-            (*eth).dst_addr[5],
-        );
+        // info!(
+        //     &ctx,
+        //     "New eth addr {:x}:{:x}:{:x}:{:x}:{:x}:{:x} -> {:x}:{:x}:{:x}:{:x}:{:x}:{:x}",
+        //     (*eth).src_addr[0],
+        //     (*eth).src_addr[1],
+        //     (*eth).src_addr[2],
+        //     (*eth).src_addr[3],
+        //     (*eth).src_addr[4],
+        //     (*eth).src_addr[5],
+        //     (*eth).dst_addr[0],
+        //     (*eth).dst_addr[1],
+        //     (*eth).dst_addr[2],
+        //     (*eth).dst_addr[3],
+        //     (*eth).dst_addr[4],
+        //     (*eth).dst_addr[5],
+        // );
     }
 
-    info!(&ctx, "Packet modified...updating IP header checksum.");
-    let computed_checksum = ipv4_csum::ipv4_checksum_calc(&mut unsafe { *ip }).to_be();
-    unsafe {
-        (*ip).check = computed_checksum;
-    }
-    info!(
-        &ctx,
-        "IPv4 new checksum: 0x{:x}/0x{:x}",
-        unsafe { (*ip).check },
-        computed_checksum
-    );
+    // info!(&ctx, "Packet modified...updating IP header checksum.");
+    // let computed_checksum = ipv4_csum::ipv4_checksum_calc(&mut unsafe { *ip }).to_be();
+    // unsafe {
+    //     (*ip).check = computed_checksum;
+    // }
+    // info!(
+    //     &ctx,
+    //     "IPv4 new checksum: 0x{:x}/0x{:x}",
+    //     unsafe { (*ip).check },
+    //     computed_checksum
+    // );
 
     Ok(xdp_action::XDP_TX)
 }
